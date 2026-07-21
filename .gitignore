@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.streamlit/secrets.toml
+build/
+dist/
+*.egg-info/
+generated/*.png
+packaging/release/*.exe
+packaging/release/*.sha256
