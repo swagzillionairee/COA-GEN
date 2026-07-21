@@ -1,0 +1,17 @@
+[server]
+headless = true
+fileWatcherType = "none"
+maxUploadSize = 110
+
+[browser]
+gatherUsageStats = false
+
+[client]
+showErrorDetails = false
+
+[theme]
+primaryColor = "#173F4F"
+backgroundColor = "#F5F7F8"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#17242B"
+font = "sans serif"

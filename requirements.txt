@@ -1,0 +1,9 @@
+streamlit==1.52.2
+reportlab==4.4.9
+pikepdf==10.10.0
+matplotlib==3.10.8
+Pillow==12.2.0
+pydantic==2.13.4
+pypdf==6.10.0
+PyMuPDF==1.26.6
+fonttools==4.61.1

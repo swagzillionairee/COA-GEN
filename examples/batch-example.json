@@ -1,0 +1,39 @@
+{
+  "reports": [
+    {
+      "report_no": "2026-000061",
+      "client": "Example Biotech",
+      "sample_name": "NAD+",
+      "batch_no": "061",
+      "receipt_date": "2026-07-18",
+      "analysis_date": "2026-07-19",
+      "report_date": "2026-07-20",
+      "document_issue_date": "2026-07-20",
+      "analytical": {
+        "purity_percent": 99.6,
+        "main_peak_time": 2.061,
+        "secondary_peak_times": [0.908],
+        "secondary_peak_percent_areas": [0.4],
+        "random_seed": 42061
+      }
+    },
+    {
+      "report_no": "COA-2026-000062",
+      "client": "Arcadia Research Demo",
+      "sample_name": "GHK-Cu",
+      "batch_no": "062",
+      "receipt_date": "2026-07-18",
+      "analysis_date": "2026-07-19",
+      "report_date": "2026-07-20",
+      "document_issue_date": "2026-07-20",
+      "sample_image_path": "images/sample-vial.jpg",
+      "analytical": {
+        "purity_percent": 98.7,
+        "main_peak_time": 2.412,
+        "secondary_peak_times": [0.741, 3.188],
+        "secondary_peak_percent_areas": [0.7, 0.6],
+        "random_seed": 42062
+      }
+    }
+  ]
+}

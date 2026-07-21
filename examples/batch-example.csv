@@ -1,0 +1,3 @@
+report_no,client,sample_name,strength_or_presentation,batch_no,receipt_date,analysis_date,report_date,document_issue_date,test,matrix,number_of_samples,purity_percent,purity_display_decimals,main_peak_time,secondary_peak_times,secondary_peak_percent_areas,random_seed,watermark_enabled,watermark_text,editing_restriction_enabled,sample_image_path
+2026-000051,Vitum Lab,NAD+,10 mg,051,2026-07-18,2026-07-19,2026-07-20,2026-07-20,Purity,Lyophilized Powder,1,99.6,1,2.061,0.908,0.4,42051,false,,false,
+COA-2026-000052,Arcadia Research,GHK-Cu,50 mg,052,2026-07-18,2026-07-19,2026-07-20,2026-07-20,Purity,Lyophilized Powder,1,98.7,1,2.412,0.741;3.188,0.7;0.6,42052,true,COPY - {report_no},false,images/sample-vial.jpg

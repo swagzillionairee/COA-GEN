@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/coa-generator/batch-schema-1.0.json",
+  "title": "COA Generator batch input",
+  "type": "object",
+  "required": ["reports"],
+  "additionalProperties": false,
+  "properties": {
+    "reports": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "required": [
+          "report_no", "client", "sample_name", "receipt_date", "analysis_date",
+          "report_date", "document_issue_date"
+        ],
+        "properties": {
+          "report_no": {"type": "string", "minLength": 1, "maxLength": 80},
+          "client": {"type": "string", "minLength": 1, "maxLength": 160},
+          "sample_name": {"type": "string", "minLength": 1, "maxLength": 180},
+          "batch_no": {"type": ["string", "null"], "maxLength": 100},
+          "receipt_date": {"type": "string", "format": "date"},
+          "analysis_date": {"type": "string", "format": "date"},
+          "report_date": {"type": "string", "format": "date"},
+          "document_issue_date": {"type": "string", "format": "date"},
+          "sample_image_path": {"type": "string", "description": "Relative to the batch input file"},
+          "logo_path": {"type": "string", "description": "Relative to the batch input file"},
+          "logo_use_authorized": {"type": "boolean"},
+          "signature_image_path": {"type": "string", "description": "Relative PNG path"},
+          "signature_image_use_authorized": {"type": "boolean"},
+          "analytical": {"type": "object"},
+          "document_protection": {"type": "object"}
+        }
+      }
+    }
+  }
+}
