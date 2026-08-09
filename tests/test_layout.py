@@ -3,13 +3,42 @@ from __future__ import annotations
 import io
 import unittest
 
-import fitz
+import pypdfium2 as pdfium
+import pypdfium2.raw as pdfium_raw
 from pypdf import PdfReader
 
 from coa.models import COAConfig
 from coa.pdf_generator import generate_pdf
 from coa.validation import validate_for_export
 from tests.helpers import portable_sample
+
+PAGE_HEIGHT_POINTS = 792
+
+
+def _image_bounds(page) -> list[tuple[float, float, float, float]]:
+    """Return each image object's (left, bottom, right, top) in PDF user space."""
+
+    return [
+        obj.get_bounds()
+        for obj in page.get_objects()
+        if obj.type == pdfium_raw.FPDF_PAGEOBJ_IMAGE
+    ]
+
+
+def _first_text_bounds(page, needle: str) -> tuple[float, float, float, float]:
+    """Return the first match's (left, bottom, right, top) in PDF user space."""
+
+    textpage = page.get_textpage()
+    try:
+        match = textpage.search(needle).get_next()
+        if match is None:
+            raise AssertionError(f"{needle!r} was not found on the rendered page")
+        char_index, char_count = match
+        if textpage.count_rects(char_index, char_count) < 1:
+            raise AssertionError(f"{needle!r} matched no drawable rectangle")
+        return textpage.get_rect(0)
+    finally:
+        textpage.close()
 
 
 class LayoutTests(unittest.TestCase):
@@ -27,28 +56,32 @@ class LayoutTests(unittest.TestCase):
         self.assertEqual(len(reader.pages), 1)
         self.assertIn("SUBMITTED SAMPLE", reader.pages[0].extract_text())
 
-        document = fitz.open(stream=generated.pdf_bytes, filetype="pdf")
-        page = document[0]
-        sample_image_rects = [
-            rect
-            for image in page.get_images(full=True)
-            for rect in page.get_image_rects(image)
-            if rect.x0 > 400 and rect.y1 < 180
-        ]
-        self.assertEqual(len(sample_image_rects), 1)
-        sample_rect = sample_image_rects[0]
-        submitted_label = page.search_for("SUBMITTED SAMPLE")[0]
-        self.assertFalse(sample_rect.intersects(submitted_label))
-        self.assertGreaterEqual(sample_rect.y0, submitted_label.y1)
-        document.close()
+        # PDF user space puts the origin at the bottom-left, so the top-right
+        # sample panel is the image starting right of x=400 and above y=612.
+        document = pdfium.PdfDocument(generated.pdf_bytes)
+        try:
+            page = document[0]
+            panel_bounds = [
+                bounds
+                for bounds in _image_bounds(page)
+                if bounds[0] > 400 and bounds[1] > PAGE_HEIGHT_POINTS - 180
+            ]
+            self.assertEqual(len(panel_bounds), 1)
+            sample_top = panel_bounds[0][3]
+            label_bottom = _first_text_bounds(page, "SUBMITTED SAMPLE")[1]
+            self.assertLessEqual(sample_top, label_bottom)
+        finally:
+            document.close()
 
     def test_rendered_page_has_letter_aspect_and_nonempty_pixels(self) -> None:
         generated = generate_pdf(COAConfig(), apply_editing_restriction=False)
-        document = fitz.open(stream=generated.pdf_bytes, filetype="pdf")
-        pixmap = document[0].get_pixmap(matrix=fitz.Matrix(1, 1), alpha=False)
-        self.assertEqual((pixmap.width, pixmap.height), (612, 792))
-        self.assertGreater(len(pixmap.samples), 100_000)
-        document.close()
+        document = pdfium.PdfDocument(generated.pdf_bytes)
+        try:
+            bitmap = document[0].render(scale=1)
+            self.assertEqual((bitmap.width, bitmap.height), (612, PAGE_HEIGHT_POINTS))
+            self.assertGreater(len(bitmap.buffer), 100_000)
+        finally:
+            document.close()
 
     def test_excess_peak_count_blocks_export(self) -> None:
         config = COAConfig()

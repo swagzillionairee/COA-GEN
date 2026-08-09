@@ -1,0 +1,81 @@
+name: Windows installer
+
+# Builds the per-user PyInstaller/Inno Setup installer on a hosted Windows
+# runner so the build gate no longer needs a local Windows machine.
+#
+# The artifact this produces is UNSIGNED and is not a releasable build. Before
+# distributing it, complete the gates in docs/VERIFICATION_REPORT.md:
+# code-signing, the clean-machine offline matrix in
+# packaging/clean-machine-offline-test-record.md, and independent viewer checks.
+# Nothing here publishes a GitHub Release; attaching a signed installer stays a
+# deliberate manual step.
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    name: Build unsigned installer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          architecture: x64
+
+      - name: Install Inno Setup 6
+        run: choco install innosetup --no-progress --yes
+
+      - name: Read version
+        id: version
+        shell: pwsh
+        run: |
+          $version = (Get-Content VERSION -Raw).Trim()
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Building version $version"
+
+      # build_windows.ps1 provisions its own .venv-build from requirements.lock,
+      # runs the test suite, regenerates examples, then builds and checksums the
+      # installer. -PythonExe points it at the interpreter setup-python provisioned,
+      # which the py launcher does not know about.
+      - name: Build installer
+        shell: pwsh
+        run: |
+          .\packaging\build_windows.ps1 `
+            -PythonExe "$env:pythonLocation\python.exe" `
+            -InnoSetupCompiler "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+
+      - name: Upload installer and checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: COA-Generator-Setup-${{ steps.version.outputs.version }}-unsigned
+          path: |
+            packaging/release/*.exe
+            packaging/release/*.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Summarize
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $hashFile = Get-ChildItem packaging/release -Filter "*.sha256" | Select-Object -First 1
+          $summary = @(
+            "## Unsigned installer $version",
+            "",
+            '``````',
+            (Get-Content $hashFile.FullName -Raw).Trim(),
+            '``````',
+            "",
+            "This build is **not releasable yet**. Still required:",
+            "",
+            "- Code-sign the installer and record the signed SHA-256",
+            "- Complete ``packaging/clean-machine-offline-test-record.md`` on clean Windows 10 and 11 VMs",
+            "- Verify protected PDFs in Adobe Acrobat Pro and a second compliant editor",
+            "- Complete antivirus and reputation submission"
+          )
+          $summary -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append

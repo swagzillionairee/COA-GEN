@@ -11,9 +11,18 @@ from coa.pdf_generator import generate_pdf
 from coa.pdf_security import PDFSecurityError
 from coa.scenarios import scenario_json
 
+# pypdf needs a crypto backend to decrypt AES-256, so the independent second-parser
+# check in coa.pdf_security fails closed without one. Protected export is therefore
+# unsupported in builds that omit it, and these two cases skip rather than fail.
+requires_crypto_backend = unittest.skipUnless(
+    importlib.util.find_spec("cryptography"),
+    "no crypto backend available for pypdf AES-256 verification",
+)
+
 
 @unittest.skipUnless(importlib.util.find_spec("pikepdf"), "pikepdf is not installed")
 class PDFSecurityTests(unittest.TestCase):
+    @requires_crypto_backend
     def test_aes256_permissions_and_two_parser_verification(self) -> None:
         config = COAConfig()
         config.document_protection.editing_restriction.enabled = True
@@ -46,6 +55,7 @@ class PDFSecurityTests(unittest.TestCase):
         self.assertNotIn(b"owner_password\"", content)
         self.assertNotIn(b"open_password", content)
 
+    @requires_crypto_backend
     def test_document_open_password_and_no_printing(self) -> None:
         config = COAConfig()
         restriction = config.document_protection.editing_restriction

@@ -207,7 +207,6 @@ complete against the actual Windows build:
 - Verify protected PDFs in Adobe Acrobat Pro and a second compliant editor.
 - Code-sign the installer and record its SHA-256 checksum.
 - Complete antivirus/reputation submission as applicable.
-- Review PyMuPDF licensing for the intended distribution model.
 - Deploy the hosted build privately, configure its secret outside source, and
   confirm the production URL is healthy before sharing it.
 - If reports will be issued as real laboratory results, replace or augment the

@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$PythonLauncher = "py",
+    [string]$PythonExe,
     [string]$InnoSetupCompiler = $env:INNO_SETUP_COMPILER
 )
 
@@ -25,7 +26,10 @@ if (-not (Test-Path $InnoSetupCompiler)) {
 Push-Location $Root
 try {
     if (Test-Path $Venv) { Remove-Item -Recurse -Force $Venv }
-    & $PythonLauncher -3.12 -m venv $Venv
+    # -PythonExe takes an interpreter that is already 3.12, such as the one a CI
+    # runner provisions outside the py launcher's registry.
+    if ($PythonExe) { & $PythonExe -m venv $Venv }
+    else { & $PythonLauncher -3.12 -m venv $Venv }
     $Python = Join-Path $Venv "Scripts\python.exe"
     & $Python -m pip install --disable-pip-version-check --requirement requirements.lock
     & $Python -m pytest
