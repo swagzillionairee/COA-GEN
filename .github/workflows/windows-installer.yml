@@ -14,6 +14,14 @@ on:
   workflow_dispatch:
   push:
     tags: ["v*"]
+  # Packaging changes are the ones that can break the installer build, and they
+  # are rare, so build on those pull requests rather than on every one.
+  pull_request:
+    paths:
+      - ".github/workflows/windows-installer.yml"
+      - "packaging/**"
+      - "requirements.lock"
+      - "launcher.py"
 
 jobs:
   build:
