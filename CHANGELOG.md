@@ -25,6 +25,12 @@ release gates in `docs/VERIFICATION_REPORT.md` remain open.
 
 ### Changed
 
+- The sample-image panel is now a portrait 1:2 frame and the photo is contained
+  inside it rather than cropped to fill, so a tall vial shot is shown whole
+  instead of being trimmed top and bottom. The frame is 50x100 pt, which is the
+  largest 1:2 panel that clears the result-note row beneath it; anything taller
+  pushes the report onto a second page. The photo's own aspect is preserved, so
+  it letterboxes within the frame.
 - Replaced the PyMuPDF preview renderer with `pypdfium2`. PyMuPDF is
   AGPL-3.0-or-commercial, which conflicted with this project's MIT license once
   bundled into a distributed installer; `pypdfium2` is BSD-3-Clause/Apache-2.0
@@ -39,6 +45,14 @@ release gates in `docs/VERIFICATION_REPORT.md` remain open.
   top-left coordinates. Both assertions were mutation-checked to confirm they
   still fail on a regressed layout.
 
+### Removed
+
+- The "Presentational approval only - not a digital signature." caption under the
+  approval block, at the maintainer's request. The approval image is still
+  presentational and still not a digital signature; that is simply no longer
+  printed on the page. The report-notice `SOURCE VERIFICATION REQUIRED` marker
+  and the source-verification PDF metadata are unchanged.
+
 ### Fixed
 
 - `python scripts/generate_examples.py` raised `ModuleNotFoundError: No module
@@ -51,6 +65,11 @@ release gates in `docs/VERIFICATION_REPORT.md` remain open.
 
 ### Known limitations
 
+- `sample_image.crop_position` no longer affects the rendered report. Showing the
+  whole photo and cropping it to a fill are mutually exclusive, and the panel now
+  does the former. The field is retained because scenario schema `1.1` rejects
+  unknown fields, so removing it would break existing saved scenarios, but the
+  crop selector in the sidebar is currently inert.
 - Protected (AES-256) PDF export is not supported in this build. pypdf needs a
   crypto backend to decrypt AES-256 for the independent second-parser check in
   `coa/pdf_security.py`, and no such backend is pinned, so protected export

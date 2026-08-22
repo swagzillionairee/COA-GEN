@@ -63,7 +63,10 @@ The generic Software row was replaced by Acquisition SW Version.
 - Exactly one US Letter page with selectable native text.
 - Two layouts: `Reference COA` and `Reference COA with Sample Image`.
 - The sample-image layout places the image and its label/caption in a bounded
-  column without overlap.
+  column without overlap. The frame is a portrait 1:2 panel and the photo is
+  contained inside it, never cropped, so a tall vial shot is shown whole. Its
+  height is capped by the result-note row beneath it, which is what keeps the
+  report to one page.
 - Typography is consistent across body, metadata, table, and footer regions;
   headers may use larger or bold type.
 - The peak-list grid is compact and has a fixed maximum row count.
@@ -82,8 +85,10 @@ The generic Software row was replaced by Acquisition SW Version.
   status. Do not remove this last marker while the app still creates
   deterministic analytical results instead of importing and validating real
   instrument output.
-- Approval images are presentational only and are explicitly not digital
-  signatures.
+- Approval images remain presentational only and are not digital signatures. The
+  printed "Presentational approval only" caption was removed at the maintainer's
+  request in 0.3.0; the property still holds, it is simply no longer stated on
+  the page. The report-notice `SOURCE VERIFICATION REQUIRED` marker is unchanged.
 
 ## Branding and media
 

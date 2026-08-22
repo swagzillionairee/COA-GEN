@@ -6,7 +6,6 @@ import io
 from dataclasses import dataclass
 from pathlib import Path
 
-from PIL import Image
 from reportlab.lib.colors import Color, HexColor, black, white
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.utils import ImageReader
@@ -177,39 +176,6 @@ def _draw_label_value(
     _fit_text(pdf, value, x + label_width, y, width - label_width, regular, size, 7.8)
 
 
-def _image_reader_for_frame(image: PortableImage, width: int, height: int, cover: bool) -> ImageReader:
-    source = Image.open(io.BytesIO(image.bytes())).convert("RGBA")
-    if cover:
-        source_ratio = source.width / source.height
-        target_ratio = width / height
-        if source_ratio > target_ratio:
-            crop_width = int(source.height * target_ratio)
-            offsets = {
-                "left": 0,
-                "right": source.width - crop_width,
-                "center": (source.width - crop_width) // 2,
-                "top": (source.width - crop_width) // 2,
-                "bottom": (source.width - crop_width) // 2,
-            }
-            left = offsets[image.crop_position]
-            source = source.crop((left, 0, left + crop_width, source.height))
-        elif source_ratio < target_ratio:
-            crop_height = int(source.width / target_ratio)
-            offsets = {
-                "top": 0,
-                "bottom": source.height - crop_height,
-                "center": (source.height - crop_height) // 2,
-                "left": (source.height - crop_height) // 2,
-                "right": (source.height - crop_height) // 2,
-            }
-            top = offsets[image.crop_position]
-            source = source.crop((0, top, source.width, top + crop_height))
-        source = source.resize((width, height), Image.Resampling.LANCZOS)
-    output = io.BytesIO()
-    source.save(output, format="PNG", optimize=True)
-    return ImageReader(io.BytesIO(output.getvalue()))
-
-
 def _draw_contained_image(
     pdf: canvas.Canvas,
     image: PortableImage,
@@ -345,28 +311,27 @@ def _draw_sample_information(pdf: canvas.Canvas, config: COAConfig) -> None:
             _draw_label_value(pdf, config, label, value, 310, 696 - index * 14, 266, size=body_size)
 
     if has_image and config.sample_image is not None:
-        frame_x, frame_y, frame_w, frame_h = 438, 644, 138, 49
+        # A portrait 1:2 frame holding the whole photo rather than a cropped fill,
+        # so a tall vial shot is shown end to end. The frame floor stays clear of
+        # the result-note row at y=569, which is what keeps the report on one page.
+        column_x, column_w = 438.0, 138.0
+        frame_w, frame_h = 50.0, 100.0
+        frame_x = column_x + (column_w - frame_w) / 2
+        frame_y = 593.0
         pdf.setStrokeColor(HexColor("#94A3B8"))
         pdf.setLineWidth(0.5)
         pdf.rect(frame_x, frame_y, frame_w, frame_h, fill=0, stroke=1)
-        pdf.drawImage(
-            _image_reader_for_frame(config.sample_image, 276, 98, cover=True),
-            frame_x,
-            frame_y,
-            width=frame_w,
-            height=frame_h,
-            mask="auto",
-        )
+        _draw_contained_image(pdf, config.sample_image, frame_x, frame_y, frame_w, frame_h)
         pdf.setFillColor(HexColor("#334155"))
         pdf.setFont(_font(config, "body", True), 7.0)
-        pdf.drawString(frame_x, 697, "SUBMITTED SAMPLE")
+        pdf.drawString(column_x, 697, "SUBMITTED SAMPLE")
         if config.sample_image.caption:
             _draw_wrapped(
                 pdf,
                 config.sample_image.caption,
-                frame_x,
-                637,
-                frame_w,
+                column_x,
+                586,
+                column_w,
                 font_name=_font(config),
                 size=6.8,
                 leading=7.2,
@@ -541,9 +506,6 @@ def _draw_peak_table_and_approval(pdf: canvas.Canvas, config: COAConfig, rows: l
         196,
         f"Approval date: {config.approval.approval_date.strftime(config.template.body_date_format)}",
     )
-    pdf.setFont(_font(config), 6.4)
-    pdf.setFillColor(HexColor("#475569"))
-    pdf.drawString(approval_x, 185, "Presentational approval only - not a digital signature.")
 
 
 def _draw_footer(pdf: canvas.Canvas, config: COAConfig) -> None:

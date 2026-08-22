@@ -56,15 +56,16 @@ class LayoutTests(unittest.TestCase):
         self.assertEqual(len(reader.pages), 1)
         self.assertIn("SUBMITTED SAMPLE", reader.pages[0].extract_text())
 
-        # PDF user space puts the origin at the bottom-left, so the top-right
-        # sample panel is the image starting right of x=400 and above y=612.
+        # PDF user space puts the origin at the bottom-left. The panel letterboxes
+        # the photo inside its frame, so anchor on the top edge: the top-right
+        # sample is the image starting right of x=400 whose top sits above y=612.
         document = pdfium.PdfDocument(generated.pdf_bytes)
         try:
             page = document[0]
             panel_bounds = [
                 bounds
                 for bounds in _image_bounds(page)
-                if bounds[0] > 400 and bounds[1] > PAGE_HEIGHT_POINTS - 180
+                if bounds[0] > 400 and bounds[3] > PAGE_HEIGHT_POINTS - 180
             ]
             self.assertEqual(len(panel_bounds), 1)
             sample_top = panel_bounds[0][3]
