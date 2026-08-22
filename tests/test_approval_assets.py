@@ -26,7 +26,8 @@ class ApprovalAssetTests(unittest.TestCase):
         generated = generate_pdf(config, apply_editing_restriction=False)
         text = PdfReader(io.BytesIO(generated.pdf_bytes)).pages[0].extract_text()
         self.assertIn(config.approval.approver, text)
-        self.assertIn("not a digital signature", text)
+        self.assertNotIn("not a digital signature", text)
+        self.assertNotIn("Presentational approval", text)
 
 
 if __name__ == "__main__":

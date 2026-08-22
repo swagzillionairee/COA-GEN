@@ -24,7 +24,7 @@ original source data.
 - Safe PNG/JPEG/WebP processing, orientation correction, metadata stripping, size limits, hashes, and portable base64 scenarios
 - Authorization gates for uploaded logos and PNG signature images
 - Literal custom watermarks with four validated template variables
-- Optional AES-256 revision-6 editing restrictions, applied after content finalization and verified with both pikepdf/QPDF and pypdf
+- Optional AES-256 revision-6 editing restrictions, applied after content finalization and verified with both pikepdf/QPDF and pypdf (requires a crypto backend that the pinned dependency set does not install; see `CHANGELOG.md`)
 - Strict schema `1.1`, documented `1.0 → 1.1` migration, and reject-unknown-field compatibility policy
 - Atomic local numbering and batch CSV/JSON/ZIP generation with preflight validation and a machine-readable ZIP manifest
 - Managed localhost-only launcher, Windows installer source, and Streamlit Community Cloud entry point
@@ -198,5 +198,6 @@ are rejected with an upgrade message.
 
 ## License and dependency review
 
-Application source is MIT-licensed. See `THIRD_PARTY_LICENSES.md`, especially the
-PyMuPDF preview-renderer licensing note, before redistributing a proprietary build.
+Application source is MIT-licensed. Every bundled runtime dependency is
+permissively licensed, so a proprietary build carries no copyleft obligation.
+See `THIRD_PARTY_LICENSES.md` before redistributing.

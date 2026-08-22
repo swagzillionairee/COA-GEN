@@ -3,19 +3,27 @@
 from __future__ import annotations
 
 import io
+import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-from coa.image_processing import process_image_upload
-from coa.instrument_metadata import derive_data_file_name, derive_instrument_sample_identifier
-from coa.models import COAConfig
-from coa.pdf_generator import generate_pdf
-from coa.scenarios import load_default_config, scenario_json
-
-
 ROOT = Path(__file__).resolve().parents[1]
+
+# Running this as `python scripts/generate_examples.py` puts scripts/ on sys.path
+# rather than the project root, so import coa only after the root is reachable.
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from coa.image_processing import process_image_upload  # noqa: E402
+from coa.instrument_metadata import (  # noqa: E402
+    derive_data_file_name,
+    derive_instrument_sample_identifier,
+)
+from coa.models import COAConfig  # noqa: E402
+from coa.pdf_generator import generate_pdf  # noqa: E402
+from coa.scenarios import load_default_config, scenario_json  # noqa: E402
 
 
 def _font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
@@ -149,14 +157,16 @@ def main() -> None:
         pdf_path.write_bytes(generated.pdf_bytes)
         (ROOT / "examples" / f"{stem}.json").write_bytes(scenario_json(config))
         try:
-            import fitz
+            import pypdfium2 as pdfium
 
             golden_dir = ROOT / "tests" / "golden"
             golden_dir.mkdir(parents=True, exist_ok=True)
-            document = fitz.open(stream=generated.pdf_bytes, filetype="pdf")
-            pixmap = document[0].get_pixmap(matrix=fitz.Matrix(1.5, 1.5), alpha=False)
-            pixmap.save(golden_dir / f"{stem}.png")
-            document.close()
+            document = pdfium.PdfDocument(generated.pdf_bytes)
+            try:
+                bitmap = document[0].render(scale=1.5)
+                bitmap.to_pil().save(golden_dir / f"{stem}.png")
+            finally:
+                document.close()
         except ImportError:
             pass
 

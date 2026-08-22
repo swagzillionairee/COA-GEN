@@ -6,7 +6,11 @@ from PyInstaller.utils.hooks import collect_all, collect_submodules
 root = Path(SPEC).resolve().parents[1]
 streamlit_datas, streamlit_binaries, streamlit_hidden = collect_all("streamlit")
 
-datas = streamlit_datas + [
+# pypdfium2 loads a bundled pdfium shared library from pypdfium2_raw; collect_all
+# keeps that binary and its version data in the frozen build.
+pdfium_datas, pdfium_binaries, pdfium_hidden = collect_all("pypdfium2_raw")
+
+datas = streamlit_datas + pdfium_datas + [
     (str(root / "app.py"), "."),
     (str(root / "templates"), "templates"),
     (str(root / "assets"), "assets"),
@@ -19,12 +23,13 @@ datas = streamlit_datas + [
 hiddenimports = sorted(
     set(
         streamlit_hidden
+        + pdfium_hidden
         + collect_submodules("coa")
         + [
             "matplotlib.backends.backend_agg",
             "pikepdf",
             "pypdf",
-            "fitz",
+            "pypdfium2",
             "PIL._tkinter_finder",
         ]
     )
@@ -33,7 +38,7 @@ hiddenimports = sorted(
 a = Analysis(
     [str(root / "launcher.py")],
     pathex=[str(root)],
-    binaries=streamlit_binaries,
+    binaries=streamlit_binaries + pdfium_binaries,
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],

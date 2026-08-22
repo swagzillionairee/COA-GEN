@@ -25,4 +25,3 @@
 - Build and code-sign the versioned Windows setup executable on Windows.
 - Execute the offline clean-VM matrix and attach evidence to the test record.
 - Verify behavior in Adobe Acrobat Pro and a second independent compliant editor.
-- Review PyMuPDF licensing or replace the optional preview renderer for the intended distribution model.

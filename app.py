@@ -220,14 +220,16 @@ def _processed_upload(
 
 def _render_preview(pdf_bytes: bytes) -> bytes | None:
     try:
-        import fitz
+        import pypdfium2 as pdfium
 
-        document = fitz.open(stream=pdf_bytes, filetype="pdf")
-        page = document.load_page(0)
-        pixmap = page.get_pixmap(matrix=fitz.Matrix(1.55, 1.55), alpha=False)
-        payload = pixmap.tobytes("png")
-        document.close()
-        return payload
+        document = pdfium.PdfDocument(pdf_bytes)
+        try:
+            bitmap = document[0].render(scale=1.55)
+            buffer = io.BytesIO()
+            bitmap.to_pil().save(buffer, format="PNG")
+            return buffer.getvalue()
+        finally:
+            document.close()
     except Exception:
         return None
 
